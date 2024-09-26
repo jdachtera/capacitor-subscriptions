@@ -50,6 +50,7 @@ export interface Transaction {
   transactionId: string;
   originalStartDate: string;
   isTrial?: boolean;
+  appAccountToken?: String
 }
 
 // latestTransactions interface and types
@@ -88,7 +89,7 @@ export type CurrentEntitlementsResponseMessage =
 export interface PurchaseProductResponse {
 	responseCode: PurchaseProductIOSResponseCode | PurchaseProductAndroidResponseCode
 	responseMessage: PurchaseProductIOSResponseMessage | PurchaseProductAndroidResponseMessage
-  data?: Transaction[]
+  data?: Transaction
 }
 
 export type PurchaseProductIOSResponseCode = -1 | 0 | 1 | 2 | 3 | 4 | 5

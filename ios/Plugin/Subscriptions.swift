@@ -289,7 +289,8 @@ import UIKit
             "originalStartDate": transaction.originalPurchaseDate,
             "originalId": transaction.originalID,
             "transactionId": transaction.id,
-            "expiryDate": transaction.expirationDate
+            "expiryDate": transaction.expirationDate,            
+            "appAccountToken": transaction.appAccountToken?.uuidString
         ]
         
     }
