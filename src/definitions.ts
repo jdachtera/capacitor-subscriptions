@@ -16,7 +16,7 @@ export interface SubscriptionsPlugin {
    * Receives the product ID which the user wants to purchase and returns the transaction ID
    * @param options.productId contains the productIdentifier
    */
-  purchaseProduct(options: { productIdentifier: string }): Promise< PurchaseProductResponse >;
+  purchaseProduct(options: { productIdentifier: string, appAccountToken?:string }): Promise< PurchaseProductResponse >;
 
   
   getCurrentEntitlements(): Promise< CurrentEntitlementsResponse >;
@@ -88,6 +88,7 @@ export type CurrentEntitlementsResponseMessage =
 export interface PurchaseProductResponse {
 	responseCode: PurchaseProductIOSResponseCode | PurchaseProductAndroidResponseCode
 	responseMessage: PurchaseProductIOSResponseMessage | PurchaseProductAndroidResponseMessage
+  transactionId?: number
 }
 
 export type PurchaseProductIOSResponseCode = -1 | 0 | 1 | 2 | 3 | 4 | 5

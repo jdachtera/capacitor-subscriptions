@@ -44,10 +44,12 @@ public class SubscriptionsPlugin: CAPPlugin {
            call.reject("Must provide a productID")
            return;
         }
-
+        
+        let appAccountToken = call.getString("appAccountToken") as String?
+        
         async {
 
-            let response = await implementation.purchaseProduct(productIdentifier);
+            let response = await implementation.purchaseProduct(productIdentifier, appAccountToken);
             call.resolve(response);
 
         }

@@ -46,12 +46,12 @@
       },
       {
         "name": "purchaseProduct",
-        "signature": "(options: { productIdentifier: string; }) => Promise<PurchaseProductResponse>",
+        "signature": "(options: { productIdentifier: string; appAccountToken?: string; }) => Promise<PurchaseProductResponse>",
         "parameters": [
           {
             "name": "options",
             "docs": "",
-            "type": "{ productIdentifier: string; }"
+            "type": "{ productIdentifier: string; appAccountToken?: string | undefined; }"
           }
         ],
         "returns": "Promise<PurchaseProductResponse>",
@@ -145,7 +145,7 @@
           "PluginListenerHandle",
           "AndroidPurchasedTrigger"
         ],
-        "slug": "addlistenerandroid-purchase-response"
+        "slug": "addlistenerandroid-purchase-response-"
       }
     ],
     "properties": []
@@ -250,6 +250,13 @@
             "PurchaseProductAndroidResponseMessage"
           ],
           "type": "'Incompatible with web' | 'Could not find a product matching the given productIdentifier' | 'Successfully purchased product' | 'Product seems to have been purchased but the transaction failed verification' | 'User closed the native popover before purchasing' | 'Product request made but is currently pending - likely due to parental restrictions' | 'An unknown error occurred whilst in the purchasing process' | 'Successfully opened native popover' | 'Failed to open native popover'"
+        },
+        {
+          "name": "transactionId",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number | undefined"
         }
       ]
     },

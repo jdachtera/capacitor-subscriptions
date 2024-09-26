@@ -86,7 +86,7 @@ import UIKit
     }
 
     @available(iOS 15.0.0, *)
-    @objc public func purchaseProduct(_ productIdentifier: String) async -> PluginCallResultData {
+    @objc public func purchaseProduct(_ productIdentifier: String, _ appAccountToken: String?) async -> PluginCallResultData {
         
         do {
 
@@ -96,7 +96,14 @@ import UIKit
                     "responseMessage": "Could not find a product matching the given productIdentifier"
                 ];
             };
-            let result: Product.PurchaseResult = try await product.purchase();
+            
+            var options : Set<Product.PurchaseOption> = []
+            
+            if let appAccountTokenUUID = UUID(uuidString: appAccountToken ?? "") {
+                options.insert(.appAccountToken(appAccountTokenUUID))
+            }
+
+            let result: Product.PurchaseResult = try await product.purchase(options: options);
 
             switch result {
 
@@ -112,7 +119,8 @@ import UIKit
                     await transaction.finish();
                     return [
                         "responseCode": 0,
-                        "responseMessage": "Successfully purchased product"
+                        "responseMessage": "Successfully purchased product",
+                        "transactionId": transaction.id
                     ];
 
                 case .userCancelled:
