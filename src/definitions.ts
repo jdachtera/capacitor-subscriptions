@@ -88,7 +88,7 @@ export type CurrentEntitlementsResponseMessage =
 export interface PurchaseProductResponse {
 	responseCode: PurchaseProductIOSResponseCode | PurchaseProductAndroidResponseCode
 	responseMessage: PurchaseProductIOSResponseMessage | PurchaseProductAndroidResponseMessage
-  transactionId?: number
+  data?: Transaction[]
 }
 
 export type PurchaseProductIOSResponseCode = -1 | 0 | 1 | 2 | 3 | 4 | 5

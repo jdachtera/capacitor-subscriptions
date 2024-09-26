@@ -120,7 +120,7 @@ import UIKit
                     return [
                         "responseCode": 0,
                         "responseMessage": "Successfully purchased product",
-                        "transactionId": transaction.id
+                        "data": formatTransaction(transaction)
                     ];
 
                 case .userCancelled:
@@ -167,16 +167,9 @@ import UIKit
 //            then add it to the transactionDictionary if verified.
             for await verification in Transaction.currentEntitlements {
                 
-                let transaction: Transaction? = checkVerified(verification) as? Transaction
-                if(transaction != nil) {
-
-                    transactionDictionary[String(transaction!.id)] = [
-                        "productIdentifier": transaction!.productID,
-                        "originalStartDate": transaction!.originalPurchaseDate,
-                        "originalId": transaction!.originalID,
-                        "transactionId": transaction!.id,
-                        "expiryDate": transaction!.expirationDate
-                    ]
+                
+                if let transaction: Transaction = checkVerified(verification) as? Transaction {
+                    transactionDictionary[String(transaction.id)] = formatTransaction(transaction)
                     
                 }
                 
@@ -259,13 +252,7 @@ import UIKit
             return [
                 "responseCode": 0,
                 "responseMessage": "Latest transaction found",
-                "data": [
-                    "productIdentifier": transaction.productID,
-                    "originalStartDate": transaction.originalPurchaseDate,
-                    "originalId": transaction.originalID,
-                    "transactionId": transaction.id,
-                    "expiryDate": transaction.expirationDate
-                ]
+                "data": formatTransaction(transaction)
             ];
             
         } catch {
@@ -292,6 +279,18 @@ import UIKit
         let df = DateFormatter();
         df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
         return df.string(for: date)?.data(using: String.Encoding.utf8)!;
+        
+    }
+    
+    @available(iOS 15.0.0, *)
+    private func formatTransaction(_ transaction: Transaction) -> [String: Any] {
+        return [
+            "productIdentifier": transaction.productID,
+            "originalStartDate": transaction.originalPurchaseDate,
+            "originalId": transaction.originalID,
+            "transactionId": transaction.id,
+            "expiryDate": transaction.expirationDate
+        ]
         
     }
     
