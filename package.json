@@ -14,7 +14,7 @@
     "CapacitorSubscriptions.podspec"
   ],
   "author": "Craig Ronald & Jascha Dachtera",
-  "license": "none",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdachtera/capacitor-subscriptions.git.git"
