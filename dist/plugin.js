@@ -13,31 +13,21 @@ var capacitorSubscriptions = (function (exports, core) {
             return options;
         }
         async getProductDetails(options) {
-            return {
-                responseCode: -1,
-                responseMessage: 'Incompatible with web',
-            };
+            throw new Error('Method not implemented.');
         }
         async purchaseProduct(options) {
-            return {
-                responseCode: -1,
-                responseMessage: 'Incompatible with web',
-            };
+            throw new Error('Method not implemented.');
+        }
+        async acknowledgePurchase(options) {
+            throw new Error('Method not implemented.');
         }
         async getCurrentEntitlements() {
-            return {
-                responseCode: -1,
-                responseMessage: 'Incompatible with web',
-            };
+            throw new Error('Method not implemented.');
         }
         async getLatestTransaction(options) {
-            return {
-                responseCode: -1,
-                responseMessage: 'Incompatible with web',
-            };
+            throw new Error('Method not implemented.');
         }
-        manageSubscriptions() {
-        }
+        manageSubscriptions() { }
     }
 
     var web = /*#__PURE__*/Object.freeze({

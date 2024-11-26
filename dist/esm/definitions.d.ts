@@ -1,4 +1,4 @@
-import { PluginListenerHandle } from "@capacitor/core";
+import type { PluginListenerHandle } from '@capacitor/core';
 export interface SubscriptionsPlugin {
     /**
      * A test method which just returns what is passed in
@@ -10,28 +10,40 @@ export interface SubscriptionsPlugin {
     }>;
     /**
      * Receives a product ID and returns the product details
-     * @param options.productId The product ID to lookup
      */
     getProductDetails(options: {
         productIdentifier: string;
-    }): Promise<ProductDetailsResponse>;
+    }): Promise<Product>;
     /**
      * Receives the product ID which the user wants to purchase and returns the transaction ID
-     * @param options.productId contains the productIdentifier
      */
     purchaseProduct(options: {
         productIdentifier: string;
-    }): Promise<PurchaseProductResponse>;
-    getCurrentEntitlements(): Promise<CurrentEntitlementsResponse>;
+        appAccountToken?: string;
+    }): Promise<AppleTransaction>;
+    purchaseProduct(options: {
+        productIdentifier: string;
+        obfuscatedAccountId?: string;
+    }): Promise<GoogleTransaction>;
+    purchaseProduct(options: {
+        productIdentifier: string;
+    }): Promise<Transaction>;
+    getCurrentEntitlements(): Promise<{
+        entitlements: Transaction[];
+    }>;
     getLatestTransaction(options: {
         productIdentifier: string;
-    }): Promise<LatestTransactionResponse>;
+    }): Promise<Transaction>;
     manageSubscriptions(): any;
+    acknowledgePurchase(options: {
+        purchaseToken: string;
+    }): Promise<void>;
     setGoogleVerificationDetails(options: {
         googleVerifyEndpoint: string;
         bid: string;
     }): void;
-    addListener(eventName: 'ANDROID-PURCHASE-RESPONSE', listenerFunc: (response: AndroidPurchasedTrigger) => void): Promise<PluginListenerHandle> & PluginListenerHandle;
+    addListener(eventName: 'ANDROID-PURCHASE-SUCCESS', listenerFunc: (response: GoogleTransaction) => void): Promise<PluginListenerHandle> & PluginListenerHandle;
+    addListener(eventName: 'ANDROID-PURCHASE-ERROR', listenerFunc: () => void): Promise<PluginListenerHandle> & PluginListenerHandle;
 }
 export interface Product {
     productIdentifier: string;
@@ -39,43 +51,27 @@ export interface Product {
     displayName: string;
     description: string;
 }
-export interface Transaction {
+export type BaseTransaction = {
     productIdentifier: string;
     expiryDate: string;
     originalId: string;
     transactionId: string;
     originalStartDate: string;
     isTrial?: boolean;
-}
-export interface LatestTransactionResponse {
-    responseCode: LatestTransactionResponseCode;
-    responseMessage: LatestTransactionResponseMessage;
-    data?: Transaction;
-}
-export type LatestTransactionResponseCode = -1 | 0 | 1 | 2 | 3;
-export type LatestTransactionResponseMessage = "Incompatible with web" | "Successfully found the latest transaction matching given productIdentifier" | "Could not find a product matching the given productIdentifier" | "No transaction for given productIdentifier, or it could not be verified" | "Unknown problem trying to retrieve latest transaction";
-export interface CurrentEntitlementsResponse {
-    responseCode: CurrentEntitlementsResponseCode;
-    responseMessage: CurrentEntitlementsResponseMessage;
-    data?: Transaction[];
-}
-export type CurrentEntitlementsResponseCode = -1 | 0 | 1 | 2;
-export type CurrentEntitlementsResponseMessage = "Incompatible with web" | "Successfully found all entitlements across all product types" | "No entitlements were found" | "Unknown problem trying to retrieve entitlements";
-export interface PurchaseProductResponse {
-    responseCode: PurchaseProductIOSResponseCode | PurchaseProductAndroidResponseCode;
-    responseMessage: PurchaseProductIOSResponseMessage | PurchaseProductAndroidResponseMessage;
-}
-export type PurchaseProductIOSResponseCode = -1 | 0 | 1 | 2 | 3 | 4 | 5;
-export type PurchaseProductIOSResponseMessage = "Incompatible with web" | "Successfully purchased product" | "Could not find a product matching the given productIdentifier" | "Product seems to have been purchased but the transaction failed verification" | "User closed the native popover before purchasing" | "Product request made but is currently pending - likely due to parental restrictions" | "An unknown error occurred whilst in the purchasing process";
-export type PurchaseProductAndroidResponseCode = -1 | 0 | 1;
-export type PurchaseProductAndroidResponseMessage = "Incompatible with web" | "Successfully opened native popover" | "Failed to open native popover";
-export interface ProductDetailsResponse {
-    responseCode: ProductDetailsResponseCode;
-    responseMessage: ProductDetailsResponseMessage;
-    data?: Product;
-}
-export type ProductDetailsResponseCode = -1 | 0 | 1;
-export type ProductDetailsResponseMessage = "Incompatible with web" | "Successfully found the product details for given productIdentifier" | "Could not find a product matching the given productIdentifier";
-export interface AndroidPurchasedTrigger {
-    fired: boolean;
-}
+};
+export type AppleTransaction = BaseTransaction & {
+    appAccountToken: string;
+};
+export type GoogleTransaction = BaseTransaction & {
+    isAcknowledged: boolean;
+    purchaseToken: string;
+    obfuscatedAccountId?: string;
+};
+export type Transaction = AppleTransaction | GoogleTransaction;
+export type AndroidPurchasedTrigger = {
+    successful: true;
+    data: GoogleTransaction;
+} | {
+    successful: false;
+    data: never;
+};

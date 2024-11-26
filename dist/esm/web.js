@@ -9,32 +9,23 @@ export class SubscriptionsWeb extends WebPlugin {
     }
     async getProductDetails(options) {
         options;
-        return {
-            responseCode: -1,
-            responseMessage: 'Incompatible with web',
-        };
+        throw new Error('Method not implemented.');
     }
     async purchaseProduct(options) {
         options;
-        return {
-            responseCode: -1,
-            responseMessage: 'Incompatible with web',
-        };
+        throw new Error('Method not implemented.');
+    }
+    async acknowledgePurchase(options) {
+        options;
+        throw new Error('Method not implemented.');
     }
     async getCurrentEntitlements() {
-        return {
-            responseCode: -1,
-            responseMessage: 'Incompatible with web',
-        };
+        throw new Error('Method not implemented.');
     }
     async getLatestTransaction(options) {
         options;
-        return {
-            responseCode: -1,
-            responseMessage: 'Incompatible with web',
-        };
+        throw new Error('Method not implemented.');
     }
-    manageSubscriptions() {
-    }
+    manageSubscriptions() { }
 }
 //# sourceMappingURL=web.js.map

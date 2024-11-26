@@ -1,5 +1,5 @@
 import { WebPlugin } from '@capacitor/core';
-import type { SubscriptionsPlugin, ProductDetailsResponse, PurchaseProductResponse, CurrentEntitlementsResponse, LatestTransactionResponse } from './definitions';
+import type { AppleTransaction, GoogleTransaction, Product, SubscriptionsPlugin, Transaction } from './definitions';
 export declare class SubscriptionsWeb extends WebPlugin implements SubscriptionsPlugin {
     setGoogleVerificationDetails(options: {
         googleVerifyEndpoint: string;
@@ -12,13 +12,23 @@ export declare class SubscriptionsWeb extends WebPlugin implements Subscriptions
     }>;
     getProductDetails(options: {
         productIdentifier: string;
-    }): Promise<ProductDetailsResponse>;
+    }): Promise<Product>;
     purchaseProduct(options: {
         productIdentifier: string;
-    }): Promise<PurchaseProductResponse>;
-    getCurrentEntitlements(): Promise<CurrentEntitlementsResponse>;
+        appAccountToken?: string;
+    }): Promise<AppleTransaction>;
+    purchaseProduct(options: {
+        productIdentifier: string;
+        obfuscatedAccountId?: string;
+    }): Promise<GoogleTransaction>;
+    acknowledgePurchase(options: {
+        purchaseToken: string;
+    }): Promise<void>;
+    getCurrentEntitlements(): Promise<{
+        entitlements: Transaction[];
+    }>;
     getLatestTransaction(options: {
         productIdentifier: string;
-    }): Promise<LatestTransactionResponse>;
+    }): Promise<Transaction>;
     manageSubscriptions(): void;
 }
