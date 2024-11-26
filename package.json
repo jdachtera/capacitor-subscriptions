@@ -1,6 +1,6 @@
 {
   "name": "@jdachtera/capacitor-subscriptions",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A capacitor plugin which simplifies subscription handling - implementing StoreKit 2 and Google Billing",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
