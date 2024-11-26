@@ -1,85 +1,56 @@
-package com.capicitor_subscriptions.capacitor;
+package com.capacitor_subscriptions.capacitor;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
 
-import com.android.billingclient.api.AcknowledgePurchaseParams;
-import com.android.billingclient.api.BillingClient;
-import com.android.billingclient.api.BillingClientStateListener;
-import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
-import com.getcapacitor.PluginResult;
 import com.getcapacitor.annotation.CapacitorPlugin;
-
-import org.json.JSONObject;
 
 @CapacitorPlugin(name = "Subscriptions")
 public class SubscriptionsPlugin extends Plugin {
 
     private Subscriptions implementation;
-
-    private BillingClient billingClient;
-
-    public SubscriptionsPlugin () {
-
-    }
-
-    // This listener is fired upon completing the billing flow, it is vital to call the acknowledgePurchase
-    // method on the billingClient, with the purchase token otherwise Google will automatically cancel the subscription
+    // This listener is fired upon completing the billing flow, it is vital
+    // to call the acknowledgePurchase
+    // method on the billingClient, with the purchase token otherwise Google
+    // will automatically cancel the subscription
     // shortly after the purchase
-    private PurchasesUpdatedListener purchasesUpdatedListener = (billingResult, purchases) -> {
+    private final PurchasesUpdatedListener purchasesUpdatedListener
+            = (billingResult, purchases) -> {
 
-        JSObject response = new JSObject();
+                Purchase purchase = implementation.findPendingPurchase(billingResult,
+                        purchases);
 
-        if(purchases != null) {
-            for (int i = 0; i < purchases.size(); i++) {
+                JSObject response = new JSObject();
 
-                Purchase currentPurchase = purchases.get(i);
-                if (!currentPurchase.isAcknowledged() && billingResult.getResponseCode() == 0 && currentPurchase.getPurchaseState() != 2) {
-
-                    AcknowledgePurchaseParams acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
-                            .setPurchaseToken(currentPurchase.getPurchaseToken())
-                            .build();
-
-                    billingClient.acknowledgePurchase(acknowledgePurchaseParams, billingResult1 -> {
-                        Log.i("Purchase ack", currentPurchase.getOriginalJson());
-                        billingResult1.getResponseCode();
-
-                        response.put("successful", true);
-
-                        // WARNING: Changed the notifyListeners method from protected to public in order to get the method call to work
-                        // This may be a security issue in the future - in order to fix it, it may be best to move this listener + the billingClient
-                        // initiation into the SubscriptionsPlugin.java, then pass it into this implementation class so we can still access the
-                        // billingClient.
-                        notifyListeners("ANDROID-PURCHASE-RESPONSE", response);
-                    });
-                } else {
-                    response.put("successful", false);
-                    notifyListeners("ANDROID-PURCHASE-RESPONSE", response);
+                if (purchase != null) {
+                    JSObject data = implementation.serializePurchase(purchase);
+                    notifyListeners("ANDROID-PURCHASE-SUCCESS", response);
+                    return;
                 }
 
-            }
-        } else {
-            response.put("successful", false);
-            notifyListeners("ANDROID-PURCHASE-RESPONSE", response);
-        }
+                notifyListeners("ANDROID-PURCHASE-SUCCESS", response);
 
-    };
+            };
+
+    public SubscriptionsPlugin() {
+
+    }
 
     @Override
     public void load() {
 
-        this.billingClient = BillingClient.newBuilder(getContext())
-                .setListener(purchasesUpdatedListener)
-                .enablePendingPurchases()
-                .build();
-        implementation = new Subscriptions(this, billingClient);
+        BillingClientEventEmitter billingClientEventEmitter
+                = new BillingClientEventEmitter(getContext());
+
+        billingClientEventEmitter.addListener(this.purchasesUpdatedListener);
+        implementation = new Subscriptions(this.getActivity(),
+                billingClientEventEmitter);
 
     }
 
@@ -88,8 +59,9 @@ public class SubscriptionsPlugin extends Plugin {
         String googleVerifyEndpoint = call.getString("googleVerifyEndpoint");
         String bid = call.getString("bid");
 
-        if(googleVerifyEndpoint != null && bid != null) {
-            implementation.setGoogleVerificationDetails(googleVerifyEndpoint, bid);
+        if (googleVerifyEndpoint != null && bid != null) {
+            implementation.setGoogleVerificationDetails(googleVerifyEndpoint,
+                    bid);
         } else {
             call.reject("Missing required parameters");
         }
@@ -121,12 +93,27 @@ public class SubscriptionsPlugin extends Plugin {
     public void purchaseProduct(PluginCall call) {
 
         String productIdentifier = call.getString("productIdentifier");
+        String obfuscatedAccountId = call.getString("obfuscatedAccountId");
 
-        if(productIdentifier == null) {
+        if (productIdentifier == null) {
             call.reject("Must provide a productID");
         }
 
-        implementation.purchaseProduct(productIdentifier, call);
+        implementation.purchaseProduct(productIdentifier, obfuscatedAccountId,
+                 call);
+
+    }
+
+    @PluginMethod
+    public void acknowledgePurchase(PluginCall call) {
+
+        String purchaseToken = call.getString("purchaseToken");
+
+        if (purchaseToken == null) {
+            call.reject("Must provide a purchaseToken");
+        }
+
+        implementation.acknowledgePurchase(purchaseToken, call);
 
     }
 
@@ -135,7 +122,7 @@ public class SubscriptionsPlugin extends Plugin {
 
         String productIdentifier = call.getString("productIdentifier");
 
-        if(productIdentifier == null) {
+        if (productIdentifier == null) {
             call.reject("Must provide a productID");
         }
 
@@ -156,18 +143,18 @@ public class SubscriptionsPlugin extends Plugin {
         String productIdentifier = call.getString("productIdentifier");
         String bid = call.getString("bid");
 
-        if(productIdentifier == null) {
+        if (productIdentifier == null) {
             call.reject("Must provide a productID");
         }
 
-        if(bid == null) {
+        if (bid == null) {
             call.reject("Must provide a bundleID");
         }
 
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("https://play.google.com/store/account/subscriptions?sku=" + productIdentifier + "&package=" + bid));
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                "https://play.google" + ".com/store/account/subscriptions?sku"
+                + "=" + productIdentifier + "&package=" + bid));
         getActivity().startActivity(browserIntent);
     }
 
 }
-

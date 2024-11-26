@@ -13,21 +13,21 @@ ionic cap sync
 
 <docgen-index>
 
-* [`getProductDetails(...)`](#getproductdetails)
-* [`purchaseProduct(...)`](#purchaseproduct)
-* [`getCurrentEntitlements()`](#getcurrententitlements)
-* [`getLatestTransaction(...)`](#getlatesttransaction)
-* [`manageSubscriptions(...)`](#managesubscriptions)
-* [`setGoogleVerificationDetails(...)`](#setgoogleverificationdetails)
-* [`addListener('ANDROID-PURCHASE-RESPONSE', ...)`](#addlistenerandroid-purchase-response)
-* [Interfaces](#interfaces)
-* [Type Aliases](#type-aliases)
+- [`getProductDetails(...)`](#getproductdetails)
+- [`purchaseProduct(...)`](#purchaseproduct)
+- [`getCurrentEntitlements()`](#getcurrententitlements)
+- [`getLatestTransaction(...)`](#getlatesttransaction)
+- [`manageSubscriptions(...)`](#managesubscriptions)
+- [`setGoogleVerificationDetails(...)`](#setgoogleverificationdetails)
+- [`addListener('ANDROID-PURCHASE-SUCCESS', ...)`](#addlistenerandroid-purchase-success)
+- [`addListener('ANDROID-PURCHASE-ERROR', ...)`](#addlistenerandroid-purchase-error)
+- [Interfaces](#interfaces)
+- [Type Aliases](#type-aliases)
 
 </docgen-index>
 
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
-
 
 ### getProductDetails(...)
 
@@ -43,8 +43,7 @@ Receives a product ID and returns the product details
 
 **Returns:** <code>Promise&lt;<a href="#productdetailsresponse">ProductDetailsResponse</a>&gt;</code>
 
---------------------
-
+---
 
 ### purchaseProduct(...)
 
@@ -60,8 +59,7 @@ Receives the product ID which the user wants to purchase and returns the transac
 
 **Returns:** <code>Promise&lt;<a href="#purchaseproductresponse">PurchaseProductResponse</a>&gt;</code>
 
---------------------
-
+---
 
 ### getCurrentEntitlements()
 
@@ -71,8 +69,7 @@ getCurrentEntitlements() => Promise<CurrentEntitlementsResponse>
 
 **Returns:** <code>Promise&lt;<a href="#currententitlementsresponse">CurrentEntitlementsResponse</a>&gt;</code>
 
---------------------
-
+---
 
 ### getLatestTransaction(...)
 
@@ -86,8 +83,7 @@ getLatestTransaction(options: { productIdentifier: string; }) => Promise<LatestT
 
 **Returns:** <code>Promise&lt;<a href="#latesttransactionresponse">LatestTransactionResponse</a>&gt;</code>
 
---------------------
-
+---
 
 ### manageSubscriptions(...)
 
@@ -99,8 +95,7 @@ manageSubscriptions(options: { productIdentifier: string; }) => void
 | ------------- | ------------------------------------------- |
 | **`options`** | <code>{ productIdentifier: string; }</code> |
 
---------------------
-
+---
 
 ### setGoogleVerificationDetails(...)
 
@@ -112,27 +107,24 @@ setGoogleVerificationDetails(options: { googleVerifyEndpoint: string; bid: strin
 | ------------- | ----------------------------------------------------------- |
 | **`options`** | <code>{ googleVerifyEndpoint: string; bid: string; }</code> |
 
---------------------
+---
 
-
-### addListener('ANDROID-PURCHASE-RESPONSE', ...)
+### addListener('ANDROID-PURCHASE-SUCCESS', ...)
 
 ```typescript
-addListener(eventName: 'ANDROID-PURCHASE-RESPONSE', listenerFunc: (response: AndroidPurchasedTrigger) => void) => Promise<PluginListenerHandle> & PluginListenerHandle
+addListener(eventName: 'ANDROID-PURCHASE-SUCCESS', listenerFunc: (response: GoogleTransaction) => void) => Promise<PluginListenerHandle> & PluginListenerHandle
 ```
 
-| Param              | Type                                                                                               |
-| ------------------ | -------------------------------------------------------------------------------------------------- |
-| **`eventName`**    | <code>'ANDROID-PURCHASE-RESPONSE'</code>                                                           |
-| **`listenerFunc`** | <code>(response: <a href="#androidpurchasedtrigger">AndroidPurchasedTrigger</a>) =&gt; void</code> |
+| Param              | Type                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'ANDROID-PURCHASE-SUCCESS'</code>                                                |
+| **`listenerFunc`** | <code>(response: <a href="#googletransaction">GoogleTransaction</a>) =&gt; void</code> |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt; & <a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
 
---------------------
-
+---
 
 ### Interfaces
-
 
 #### ProductDetailsResponse
 
@@ -141,7 +133,6 @@ addListener(eventName: 'ANDROID-PURCHASE-RESPONSE', listenerFunc: (response: And
 | **`responseCode`**    | <code><a href="#productdetailsresponsecode">ProductDetailsResponseCode</a></code>       |
 | **`responseMessage`** | <code><a href="#productdetailsresponsemessage">ProductDetailsResponseMessage</a></code> |
 | **`data`**            | <code><a href="#product">Product</a></code>                                             |
-
 
 #### Product
 
@@ -152,14 +143,12 @@ addListener(eventName: 'ANDROID-PURCHASE-RESPONSE', listenerFunc: (response: And
 | **`displayName`**       | <code>string</code> |
 | **`description`**       | <code>string</code> |
 
-
 #### PurchaseProductResponse
 
 | Prop                  | Type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`responseCode`**    | <code>0 \| 1 \| 2 \| 5 \| 4 \| 3 \| -1</code>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | **`responseMessage`** | <code>'Incompatible with web' \| 'Could not find a product matching the given productIdentifier' \| 'Successfully purchased product' \| '<a href="#product">Product</a> seems to have been purchased but the transaction failed verification' \| 'User closed the native popover before purchasing' \| '<a href="#product">Product</a> request made but is currently pending - likely due to parental restrictions' \| 'An unknown error occurred whilst in the purchasing process' \| 'Successfully opened native popover' \| 'Failed to open native popover'</code> |
-
 
 #### CurrentEntitlementsResponse
 
@@ -169,7 +158,6 @@ addListener(eventName: 'ANDROID-PURCHASE-RESPONSE', listenerFunc: (response: And
 | **`responseMessage`** | <code><a href="#currententitlementsresponsemessage">CurrentEntitlementsResponseMessage</a></code> |
 | **`data`**            | <code>Transaction[]</code>                                                                        |
 
-
 #### Transaction
 
 | Prop                    | Type                |
@@ -177,7 +165,6 @@ addListener(eventName: 'ANDROID-PURCHASE-RESPONSE', listenerFunc: (response: And
 | **`productIdentifier`** | <code>string</code> |
 | **`expiryDate`**        | <code>string</code> |
 | **`originalStartDate`** | <code>string</code> |
-
 
 #### LatestTransactionResponse
 
@@ -187,13 +174,11 @@ addListener(eventName: 'ANDROID-PURCHASE-RESPONSE', listenerFunc: (response: And
 | **`responseMessage`** | <code><a href="#latesttransactionresponsemessage">LatestTransactionResponseMessage</a></code> |
 | **`data`**            | <code><a href="#transaction">Transaction</a></code>                                           |
 
-
 #### PluginListenerHandle
 
 | Prop         | Type                                      |
 | ------------ | ----------------------------------------- |
 | **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
-
 
 #### AndroidPurchasedTrigger
 
@@ -201,57 +186,62 @@ addListener(eventName: 'ANDROID-PURCHASE-RESPONSE', listenerFunc: (response: And
 | ----------- | -------------------- |
 | **`fired`** | <code>boolean</code> |
 
-
 ### Type Aliases
-
 
 #### ProductDetailsResponseCode
 
 <code>-1 | 0 | 1</code>
 
-
 #### ProductDetailsResponseMessage
 
-<code>"Incompatible with web" | "Successfully found the product details for given productIdentifier" | "Could not find a product matching the given productIdentifier"</code>
-
+<code>
+  "Incompatible with web" | "Successfully found the product details for given productIdentifier" | "Could not find a
+  product matching the given productIdentifier"
+</code>
 
 #### PurchaseProductIOSResponseCode
 
 <code>-1 | 0 | 1 | 2 | 3 | 4 | 5</code>
 
-
 #### PurchaseProductAndroidResponseCode
 
 <code>-1 | 0 | 1</code>
 
-
 #### PurchaseProductIOSResponseMessage
 
-<code>"Incompatible with web" | "Successfully purchased product" | "Could not find a product matching the given productIdentifier" | "<a href="#product">Product</a> seems to have been purchased but the transaction failed verification" | "User closed the native popover before purchasing" | "<a href="#product">Product</a> request made but is currently pending - likely due to parental restrictions" | "An unknown error occurred whilst in the purchasing process"</code>
-
+<code>
+  "Incompatible with web" | "Successfully purchased product" | "Could not find a product matching the given
+  productIdentifier" | "<a href="#product">Product</a> seems to have been purchased but the transaction failed
+  verification" | "User closed the native popover before purchasing" | "<a href="#product">Product</a> request made but
+  is currently pending - likely due to parental restrictions" | "An unknown error occurred whilst in the purchasing
+  process"
+</code>
 
 #### PurchaseProductAndroidResponseMessage
 
 <code>"Incompatible with web" | "Successfully opened native popover" | "Failed to open native popover"</code>
 
-
 #### CurrentEntitlementsResponseCode
 
 <code>-1 | 0 | 1 | 2</code>
 
-
 #### CurrentEntitlementsResponseMessage
 
-<code>"Incompatible with web" | "Successfully found all entitlements across all product types" | "No entitlements were found" | "Unknown problem trying to retrieve entitlements" | </code>
-
+<code>
+  "Incompatible with web" | "Successfully found all entitlements across all product types" | "No entitlements were
+  found" | "Unknown problem trying to retrieve entitlements" |{' '}
+</code>
 
 #### LatestTransactionResponseCode
 
 <code>-1 | 0 | 1 | 2 | 3</code>
 
-
 #### LatestTransactionResponseMessage
 
-<code>"Incompatible with web" | "Successfully found the latest transaction matching given productIdentifier" | "Could not find a product matching the given productIdentifier" | "No transaction for given productIdentifier, or it could not be verified" | "Unknown problem trying to retrieve latest transaction"</code>
+<code>
+  "Incompatible with web" | "Successfully found the latest transaction matching given productIdentifier" | "Could not
+  find a product matching the given productIdentifier" | "No transaction for given productIdentifier, or it could not be
+  verified" | "Unknown problem trying to retrieve latest transaction"
+</code>
 
 </docgen-api>

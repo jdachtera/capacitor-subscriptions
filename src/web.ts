@@ -1,43 +1,36 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { SubscriptionsPlugin, ProductDetailsResponse, PurchaseProductResponse, CurrentEntitlementsResponse, LatestTransactionResponse } from './definitions';
+import type { AppleTransaction, GoogleTransaction, Product, SubscriptionsPlugin, Transaction } from './definitions';
 
 export class SubscriptionsWeb extends WebPlugin implements SubscriptionsPlugin {
-  setGoogleVerificationDetails(options: { googleVerifyEndpoint: string, bid: string }): void {
+  setGoogleVerificationDetails(options: { googleVerifyEndpoint: string; bid: string }): void {
     options;
   }
   async echo(options: { value: string }): Promise<{ value: string }> {
     console.log('ECHO', options);
     return options;
   }
-  async getProductDetails(options: { productIdentifier: string }): Promise< ProductDetailsResponse > {
+  async getProductDetails(options: { productIdentifier: string }): Promise<Product> {
     options;
-    return {
-      responseCode: -1,
-      responseMessage: 'Incompatible with web',
-    }
+    throw new Error('Method not implemented.');
   }
-  async purchaseProduct(options: { productIdentifier: string }): Promise< PurchaseProductResponse > {
+  purchaseProduct(options: { productIdentifier: string; appAccountToken?: string }): Promise<AppleTransaction>;
+  purchaseProduct(options: { productIdentifier: string; obfuscatedAccountId?: string }): Promise<GoogleTransaction>;
+  async purchaseProduct(options: { productIdentifier: string }): Promise<Transaction> {
     options;
-    return {
-      responseCode: -1,
-      responseMessage: 'Incompatible with web',
-    }
+    throw new Error('Method not implemented.');
   }
-  async getCurrentEntitlements(): Promise< CurrentEntitlementsResponse > {
-    return {
-      responseCode: -1,
-      responseMessage: 'Incompatible with web',
-    }
-  }
-  async getLatestTransaction(options: {productIdentifier: string}): Promise< LatestTransactionResponse > {
+  async acknowledgePurchase(options: { purchaseToken: string }): Promise<void> {
     options;
-    return {
-      responseCode: -1,
-      responseMessage: 'Incompatible with web',
-    }
+    throw new Error('Method not implemented.');
   }
-  manageSubscriptions(): void {
 
+  async getCurrentEntitlements(): Promise<{ entitlements: Transaction[] }> {
+    throw new Error('Method not implemented.');
   }
+  async getLatestTransaction(options: { productIdentifier: string }): Promise<Transaction> {
+    options;
+    throw new Error('Method not implemented.');
+  }
+  manageSubscriptions(): void {}
 }

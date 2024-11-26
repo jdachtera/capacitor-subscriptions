@@ -1,6 +1,6 @@
 {
-  "name": "capacitor-subscriptions",
-  "version": "1.0.2",
+  "name": "@jdachtera/capacitor-subscriptions",
+  "version": "1.0.0",
   "description": "A capacitor plugin which simplifies subscription handling - implementing StoreKit 2 and Google Billing",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -13,14 +13,14 @@
     "ios/Plugin/",
     "CapacitorSubscriptions.podspec"
   ],
-  "author": "Craig Ronald",
+  "author": "Craig Ronald & Jascha Dachtera",
   "license": "none",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CraigRonald555/capacitor-subscriptions.git.git"
+    "url": "git+https://github.com/jdachtera/capacitor-subscriptions.git.git"
   },
   "bugs": {
-    "url": "https://github.com/CraigRonald555/capacitor-subscriptions.git/issues"
+    "url": "https://github.com/jdachtera/capacitor-subscriptions.git/issues"
   },
   "keywords": [
     "capacitor",
