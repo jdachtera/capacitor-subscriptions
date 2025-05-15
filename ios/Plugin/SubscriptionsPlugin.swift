@@ -30,6 +30,18 @@ public class SubscriptionsPlugin: CAPPlugin {
             await implementation.getProductDetails(productIdentifier, call: call)
         }
     }
+
+    @available(iOS 15.0.0, *)
+    @objc func getProductDetailsBatch(_ call: CAPPluginCall) {
+        guard let productIdentifiers = call.getArray("productIds", String.self) else {
+        call.reject("Must provide an array of productIds")
+        return
+        }
+
+        Task {
+        await self.implementation.getProductDetailsBatch(productIdentifiers, call: call)
+        }
+    }    
     
     @available(iOS 15.0.0, *)
     @objc func purchaseProduct(_ call: CAPPluginCall) {

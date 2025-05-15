@@ -16,6 +16,13 @@ import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
+import com.getcapacitor.JSArray;
+
+import org.json.JSONException;
+
+import java.util.stream.Collectors;
+import java.util.ArrayList;
+
 
 import org.json.JSONArray;
 
@@ -79,44 +86,242 @@ public class Subscriptions {
     }
 
     public void getProductDetails(String productIdentifier, PluginCall call) {
-        if (billingClientIsConnected == 1) {
+        JSArray ids = new JSArray();
+        ids.put(productIdentifier);
 
-            QueryProductDetailsParams.Product productToFind =
-                    QueryProductDetailsParams.Product
-                    .newBuilder().setProductId(productIdentifier)
-                    .setProductType(BillingClient.ProductType.SUBS).build();
-
-            QueryProductDetailsParams queryProductDetailsParams =
-                    QueryProductDetailsParams
-                    .newBuilder().setProductList(List.of(productToFind))
-                    .build();
-
-            billingClient.queryProductDetailsAsync(queryProductDetailsParams,
+        try {
+            billingClient.queryProductDetailsAsync(buildQueryParams(ids),
                     (billingResult, productDetailsList) -> {
+                if (productDetailsList == null || productDetailsList.isEmpty()) {
+                    call.reject("Product not found", "PRODUCTS_NOT_FOUND");
+                    return;
+                }
+
+                JSArray offersArray =
+                        serializeProductDetails(productDetailsList.get(0));
+                if (offersArray.length() == 0) {
+                    call.reject("No offers found for product", "NO_OFFERS");
+                    return;
+                }
 
                 try {
-
-                    ProductDetails productDetails = productDetailsList.get(0);
-                    JSObject data = serializeProductDetails(productDetails);
-
-                    call.resolve(data);
-
-                } catch (Exception e) {
-                    Log.e("Err", e.toString());
-                    call.reject("Could not find a " + "product" + " matching "
-                            + "the given " + "productIdentifier",
-                            "PRODUCT_NOT_FOUND");
+                    JSObject firstOffer =
+                            JSObject.fromJSONObject(offersArray.getJSONObject(0));
+                    call.resolve(firstOffer);
+                } catch (JSONException e) {
+                    call.reject("Failed to parse offer JSON", "JSON_ERROR", e);
                 }
+
             });
-        } else if (billingClientIsConnected == 2) {
-            call.reject("Android: BillingClient failed " + "to" + " " +
-                    "initialise","BILLING_CLIENT_INIT_FAILED");
-        } else {
-            call.reject("Android: BillingClient is still " + "initialising",
-                    "BILLING_CLIENT_INIT_PENDING");
+        } catch (Exception e) {
+            call.reject("Failed to extract product", "EXTRACTION_ERROR");
         }
     }
 
+
+    public void getProductDetailsBatch(JSArray productIdsArray,
+                                       PluginCall call) {
+        if (billingClientIsConnected != 1) {
+            String reason = (billingClientIsConnected == 2) ? "BillingClient " +
+                    "failed to initialize" : "BillingClient is still " +
+                    "initializing";
+            String code = (billingClientIsConnected == 2) ?
+                    "BILLING_CLIENT_INIT_FAILED" :
+                    "BILLING_CLIENT_INIT_PENDING";
+            call.reject(reason, code);
+            return;
+        }
+
+        // Extract unique base product IDs from composite IDs like "saztunes
+        // .monthly"
+        List<String> baseProductIds = new ArrayList<>();
+        try {
+            for (int i = 0; i < productIdsArray.length(); i++) {
+                String fullId = productIdsArray.getString(i);
+                String[] parts = fullId.split("\\.");
+
+                if (parts.length > 0) {
+                    String baseId = parts[0];
+                    if (!baseProductIds.contains(baseId)) {
+                        baseProductIds.add(baseId);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            call.reject("Invalid input: could not convert product IDs",
+                    "INVALID_INPUT");
+            return;
+        }
+        List<QueryProductDetailsParams.Product> productList = new ArrayList<>();
+        for (String id : baseProductIds) {
+            productList.add(QueryProductDetailsParams.Product.newBuilder()
+                    .setProductId(id)
+                    .setProductType(BillingClient.ProductType.SUBS).build());
+        }
+
+        QueryProductDetailsParams queryParams = QueryProductDetailsParams
+                .newBuilder().setProductList(productList).build();
+
+        billingClient.queryProductDetailsAsync(queryParams, (billingResult,
+                                                             productDetailsList) -> {
+            try {
+                if (productDetailsList == null || productDetailsList.isEmpty()) {
+                    call.reject("No product details returned from Google " +
+                            "Play", "PRODUCTS_NOT_FOUND");
+                    return;
+                }
+
+                JSArray resultArray = new JSArray();
+                for (ProductDetails productDetails : productDetailsList) {
+                    JSArray offersArray =
+                            serializeProductDetails(productDetails);
+                    for (int j = 0; j < offersArray.length(); j++) {
+                        resultArray.put(offersArray.getJSONObject(j));
+                    }
+                }
+
+                JSObject response = new JSObject();
+                response.put("products", resultArray);
+                call.resolve(response);
+
+            } catch (Exception e) {
+                call.reject("Failed to serialize product details",
+                        "SERIALIZATION_ERROR", e);
+            }
+        });
+    }
+
+    @NonNull
+    public JSArray serializeProductDetails(ProductDetails productDetails) {
+        JSArray resultArray = new JSArray();
+
+        List<ProductDetails.SubscriptionOfferDetails> offers =
+                productDetails.getSubscriptionOfferDetails();
+        if (offers == null || offers.isEmpty()) {
+            JSObject fallback = new JSObject();
+            fallback.put("baseProductId", productDetails.getProductId());
+            fallback.put("title", productDetails.getTitle());
+            fallback.put("description", productDetails.getDescription());
+            fallback.put("type", "subscription");
+            fallback.put("source", "google");
+            fallback.put("price", 0);
+            fallback.put("currency", "USD");
+            resultArray.put(fallback);
+            return resultArray;
+        }
+
+        for (ProductDetails.SubscriptionOfferDetails offer : offers) {
+            List<ProductDetails.PricingPhase> phases = offer.getPricingPhases()
+                    .getPricingPhaseList();
+            if (phases == null || phases.isEmpty())
+                continue;
+
+            ProductDetails.PricingPhase base = phases.get(0);
+            for (ProductDetails.PricingPhase p : phases) {
+                if (p.getRecurrenceMode() == ProductDetails.RecurrenceMode.INFINITE_RECURRING) {
+                    base = p;
+                    break;
+                }
+            }
+
+            String interval = billingPeriodToInterval(base.getBillingPeriod());
+            String intervalAdjective = intervalToAdjective(interval);
+
+            JSObject result = new JSObject();
+            result.put("baseProductId", productDetails.getProductId());
+            result.put("title", productDetails.getTitle());
+            result.put("description", productDetails.getDescription());
+            result.put("type", "subscription");
+            result.put("source", "google");
+            result.put("id",
+                    productDetails.getProductId() + "." + intervalAdjective);
+            result.put("interval", interval);
+            result.put("intervalCount",
+                    parseBillingPeriodCount(base.getBillingPeriod()));
+
+            result.put("offerToken", offer.getOfferToken());
+            result.put("basePlanId", offer.getBasePlanId());
+            result.put("price", microsToDecimal(base.getPriceAmountMicros()));
+            result.put("localizedPrice", base.getFormattedPrice());
+            result.put("currency", base.getPriceCurrencyCode());
+
+            for (ProductDetails.PricingPhase p : phases) {
+                if (p.getRecurrenceMode() == ProductDetails.RecurrenceMode.FINITE_RECURRING && p.getPriceAmountMicros() == 0) {
+                    result.put("hasFreeTrial", true);
+                    result.put("trialPeriod",
+                            billingPeriodToInterval(p.getBillingPeriod()));
+                    result.put("trialPeriodCount",
+                            parseBillingPeriodCount(p.getBillingPeriod()));
+                } else if (p.getRecurrenceMode() == ProductDetails.RecurrenceMode.FINITE_RECURRING && p.getPriceAmountMicros() > 0) {
+                    result.put("hasIntroOffer", true);
+                    result.put("introPrice",
+                            microsToDecimal(p.getPriceAmountMicros()));
+                    result.put("introPriceString", p.getFormattedPrice());
+                    result.put("introPeriod",
+                            billingPeriodToInterval(p.getBillingPeriod()));
+                    result.put("introPeriodCount",
+                            parseBillingPeriodCount(p.getBillingPeriod()));
+                }
+            }
+
+            resultArray.put(result);
+        }
+
+        return resultArray;
+    }
+
+
+    private double microsToDecimal(long micros) {
+        return micros / 1_000_000.0;
+    }
+
+    private String billingPeriodToInterval(String period) {
+        if (period.contains("Y"))
+            return "year";
+        if (period.contains("M"))
+            return "month";
+        if (period.contains("W"))
+            return "week";
+        if (period.contains("D"))
+            return "day";
+        return "unknown";
+    }
+
+    private String intervalToAdjective(String interval) {
+        switch (interval) {
+            case "day":
+                return "daily";
+            case "week":
+                return "weekly";
+            case "month":
+                return "monthly";
+            case "year":
+                return "yearly";
+            default:
+                return interval;
+        }
+    }
+
+
+    private int parseBillingPeriodCount(String period) {
+        try {
+            return Integer.parseInt(period.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {
+            return 1;
+        }
+    }
+
+    private QueryProductDetailsParams buildQueryParams(JSArray ids) throws JSONException {
+        List<QueryProductDetailsParams.Product> products = new ArrayList<>();
+        for (int i = 0; i < ids.length(); i++) {
+            String productId = ids.getString(i);
+            products.add(QueryProductDetailsParams.Product.newBuilder()
+                    .setProductId(productId)
+                    .setProductType(BillingClient.ProductType.SUBS).build());
+        }
+        return QueryProductDetailsParams.newBuilder().setProductList(products)
+                .build();
+    }
 
     public void getLatestTransaction(String productIdentifier,
                                      PluginCall call) {
@@ -212,63 +417,64 @@ public class Subscriptions {
     }
 
     public void purchaseProduct(String productIdentifier,
-                                String obfuscatedAccountId, PluginCall call) {
+                                String obfuscatedAccountId, String offerToken
+            , PluginCall call) {
         Log.i("SAZTUNES",
-                "purchaseProduct" + billingClientIsConnected + " " + productIdentifier);
+                "purchaseProduct " + billingClientIsConnected + " " + productIdentifier);
 
-        if (billingClientIsConnected == 1) {
-
-            QueryProductDetailsParams.Product productToFind =
-                    QueryProductDetailsParams.Product
-                    .newBuilder().setProductId(productIdentifier)
-                    .setProductType(BillingClient.ProductType.SUBS).build();
-
-            QueryProductDetailsParams queryProductDetailsParams =
-                    QueryProductDetailsParams
-                    .newBuilder().setProductList(List.of(productToFind))
-                    .build();
-
-            billingClient.queryProductDetailsAsync(queryProductDetailsParams,
-                    (billingResult1, productDetailsList) -> {
-
-                try {
-                    ProductDetails productDetails = productDetailsList.get(0);
-                    BillingFlowParams billingFlowParams = BillingFlowParams
-                            .newBuilder()
-                            .setObfuscatedAccountId(obfuscatedAccountId)
-                            .setProductDetailsParamsList(List.of(BillingFlowParams.ProductDetailsParams
-                                    .newBuilder()
-                                    .setProductDetails(productDetails)
-                                    .setOfferToken(productDetails
-                                            .getSubscriptionOfferDetails()
-                                            .get(0).getOfferToken()).build()))
-                            .build();
-
-
-                    billingClientEventEmitter.addExclusiveListenerOnce((billingResult, purchases) -> {
-                        Purchase purchase = findPendingPurchase(billingResult
-                                , purchases);
-
-                        if (purchase != null) {
-                            JSObject data = serializePurchase(purchase);
-                            call.resolve(data);
-                        } else {
-                            call.reject("Billing flow not successful.",
-                                    "PURCHASE_CANCELLED");
-                        }
-                    });
-
-                    billingClient.launchBillingFlow(this.activity,
-                            billingFlowParams);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    call.reject("Could start billing flow.",
-                            "PURCHASE_FAILED",e);
-                }
-            });
+        if (billingClientIsConnected != 1) {
+            call.reject("Billing client is not connected",
+                    "BILLING_CLIENT_NOT_CONNECTED");
+            return;
         }
 
+        QueryProductDetailsParams.Product productToFind =
+                QueryProductDetailsParams.Product
+                .newBuilder().setProductId(productIdentifier)
+                .setProductType(BillingClient.ProductType.SUBS).build();
+
+        QueryProductDetailsParams queryProductDetailsParams =
+                QueryProductDetailsParams
+                .newBuilder().setProductList(List.of(productToFind)).build();
+
+        billingClient.queryProductDetailsAsync(queryProductDetailsParams,
+                (billingResult1, productDetailsList) -> {
+            try {
+                ProductDetails productDetails = productDetailsList.get(0);
+                BillingFlowParams.ProductDetailsParams.Builder detailsParamsBuilder = BillingFlowParams.ProductDetailsParams
+                        .newBuilder().setProductDetails(productDetails);
+
+                if (offerToken != null) {
+                    detailsParamsBuilder.setOfferToken(offerToken);
+                }
+
+                BillingFlowParams billingFlowParams = BillingFlowParams
+                        .newBuilder()
+                        .setObfuscatedAccountId(obfuscatedAccountId)
+                        .setProductDetailsParamsList(List.of(detailsParamsBuilder.build()))
+                        .build();
+
+                billingClientEventEmitter.addExclusiveListenerOnce((billingResult, purchases) -> {
+                    Purchase purchase = findPendingPurchase(billingResult,
+                            purchases);
+                    if (purchase != null) {
+                        JSObject data = serializePurchase(purchase);
+                        call.resolve(data);
+                    } else {
+                        call.reject("Billing flow not successful.",
+                                "PURCHASE_CANCELLED");
+                    }
+                });
+
+                billingClient.launchBillingFlow(this.activity,
+                        billingFlowParams);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                call.reject("Could not start billing flow.", "PURCHASE_FAILED"
+                        , e);
+            }
+        });
     }
 
     public void acknowledgePurchase(String purchaseToken, PluginCall call) {
@@ -369,24 +575,6 @@ public class Subscriptions {
         }
 
         return null;
-    }
-
-
-    @NonNull
-    public JSObject serializeProductDetails(ProductDetails productDetails) {
-
-        List<ProductDetails.SubscriptionOfferDetails> subscriptionOfferDetails = productDetails.getSubscriptionOfferDetails();
-
-        String price = subscriptionOfferDetails.get(0).getPricingPhases()
-                .getPricingPhaseList().get(0).getFormattedPrice();
-        String currency = subscriptionOfferDetails.get(0).getPricingPhases()
-                .getPricingPhaseList().get(0).getPriceCurrencyCode();
-
-        return new JSObject()
-                .put("productIdentifier", productDetails.getProductId())
-                .put("displayName", productDetails.getTitle())
-                .put("description", productDetails.getDescription())
-                .put("price", price).put("currency", currency);
     }
 
     @NonNull

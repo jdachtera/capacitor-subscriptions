@@ -17,7 +17,7 @@
         ],
         "returns": "Promise<{ value: string; }>",
         "tags": [],
-        "docs": "A test method which just returns what is passed in",
+        "docs": "",
         "complexTypes": [],
         "slug": "echo"
       },
@@ -33,11 +33,29 @@
         ],
         "returns": "Promise<Product>",
         "tags": [],
-        "docs": "Receives a product ID and returns the product details",
+        "docs": "Fetch metadata for a single subscription product by its identifier.",
         "complexTypes": [
           "Product"
         ],
         "slug": "getproductdetails"
+      },
+      {
+        "name": "getProductDetailsBatch",
+        "signature": "(options: { productIds: string[]; }) => Promise<{ products: Product[]; }>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ productIds: string[]; }"
+          }
+        ],
+        "returns": "Promise<{ products: Product[]; }>",
+        "tags": [],
+        "docs": "Fetch metadata for multiple subscription products in one batch request.",
+        "complexTypes": [
+          "Product"
+        ],
+        "slug": "getproductdetailsbatch"
       },
       {
         "name": "purchaseProduct",
@@ -51,7 +69,7 @@
         ],
         "returns": "Promise<AppleTransaction>",
         "tags": [],
-        "docs": "Receives the product ID which the user wants to purchase and returns the transaction ID",
+        "docs": "Initiate a purchase flow for a subscription product.",
         "complexTypes": [
           "AppleTransaction"
         ],
@@ -59,12 +77,12 @@
       },
       {
         "name": "purchaseProduct",
-        "signature": "(options: { productIdentifier: string; obfuscatedAccountId?: string; }) => Promise<GoogleTransaction>",
+        "signature": "(options: { productIdentifier: string; obfuscatedAccountId?: string; offerToken?: string; }) => Promise<GoogleTransaction>",
         "parameters": [
           {
             "name": "options",
             "docs": "",
-            "type": "{ productIdentifier: string; obfuscatedAccountId?: string | undefined; }"
+            "type": "{ productIdentifier: string; obfuscatedAccountId?: string | undefined; offerToken?: string | undefined; }"
           }
         ],
         "returns": "Promise<GoogleTransaction>",
@@ -99,7 +117,7 @@
         "parameters": [],
         "returns": "Promise<{ entitlements: Transaction[]; }>",
         "tags": [],
-        "docs": "",
+        "docs": "Query all active entitlements (non-expired subscriptions).",
         "complexTypes": [
           "Transaction"
         ],
@@ -117,7 +135,7 @@
         ],
         "returns": "Promise<Transaction>",
         "tags": [],
-        "docs": "",
+        "docs": "Returns the most recent transaction for a given product identifier.",
         "complexTypes": [
           "Transaction"
         ],
@@ -129,7 +147,7 @@
         "parameters": [],
         "returns": "any",
         "tags": [],
-        "docs": "",
+        "docs": "Opens the platform-native subscription management UI (App Store / Play Store).",
         "complexTypes": [],
         "slug": "managesubscriptions"
       },
@@ -145,7 +163,7 @@
         ],
         "returns": "Promise<void>",
         "tags": [],
-        "docs": "",
+        "docs": "Acknowledge a Google Play purchase after processing.",
         "complexTypes": [],
         "slug": "acknowledgepurchase"
       },
@@ -161,7 +179,7 @@
         ],
         "returns": "void",
         "tags": [],
-        "docs": "",
+        "docs": "Required for Google Play purchase validation via a server.",
         "complexTypes": [],
         "slug": "setgoogleverificationdetails"
       },
@@ -224,21 +242,21 @@
       "methods": [],
       "properties": [
         {
-          "name": "productIdentifier",
+          "name": "id",
           "tags": [],
           "docs": "",
           "complexTypes": [],
           "type": "string"
         },
         {
-          "name": "price",
+          "name": "baseProductId",
           "tags": [],
           "docs": "",
           "complexTypes": [],
-          "type": "string"
+          "type": "string | undefined"
         },
         {
-          "name": "displayName",
+          "name": "title",
           "tags": [],
           "docs": "",
           "complexTypes": [],
@@ -250,6 +268,184 @@
           "docs": "",
           "complexTypes": [],
           "type": "string"
+        },
+        {
+          "name": "price",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "localizedPrice",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "currency",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "type",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "'subscription' | 'non-subscription'"
+        },
+        {
+          "name": "interval",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [
+            "SubscriptionInterval"
+          ],
+          "type": "SubscriptionInterval"
+        },
+        {
+          "name": "intervalCount",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "hasIntroOffer",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "introPrice",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "introPriceString",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "introPeriod",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [
+            "SubscriptionInterval"
+          ],
+          "type": "SubscriptionInterval"
+        },
+        {
+          "name": "introPeriodCount",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "hasFreeTrial",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "trialPeriod",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [
+            "SubscriptionInterval"
+          ],
+          "type": "SubscriptionInterval"
+        },
+        {
+          "name": "trialPeriodCount",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "subscriptionGroup",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "isFamilyShareable",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "source",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "'apple' | 'google' | 'stripe'"
+        },
+        {
+          "name": "offerToken",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        }
+      ]
+    },
+    {
+      "name": "AppleTransaction",
+      "slug": "appletransaction",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "appAccountToken",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "GoogleTransaction",
+      "slug": "googletransaction",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "isAcknowledged",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "boolean"
+        },
+        {
+          "name": "purchaseToken",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "obfuscatedAccountId",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
         }
       ]
     },
@@ -273,39 +469,25 @@
   "enums": [],
   "typeAliases": [
     {
-      "name": "AppleTransaction",
-      "slug": "appletransaction",
+      "name": "SubscriptionInterval",
+      "slug": "subscriptioninterval",
       "docs": "",
       "types": [
         {
-          "text": "BaseTransaction & {\n  appAccountToken: string;\n}",
-          "complexTypes": [
-            "BaseTransaction"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "BaseTransaction",
-      "slug": "basetransaction",
-      "docs": "",
-      "types": [
-        {
-          "text": "{\n  productIdentifier: string;\n  expiryDate: string;\n  originalId: string;\n  transactionId: string;\n  originalStartDate: string;\n  isTrial?: boolean;\n}",
+          "text": "'day'",
           "complexTypes": []
-        }
-      ]
-    },
-    {
-      "name": "GoogleTransaction",
-      "slug": "googletransaction",
-      "docs": "",
-      "types": [
+        },
         {
-          "text": "BaseTransaction & {\n  isAcknowledged: boolean;\n  purchaseToken: string;\n  obfuscatedAccountId?: string;\n}",
-          "complexTypes": [
-            "BaseTransaction"
-          ]
+          "text": "'week'",
+          "complexTypes": []
+        },
+        {
+          "text": "'month'",
+          "complexTypes": []
+        },
+        {
+          "text": "'year'",
+          "complexTypes": []
         }
       ]
     },

@@ -1,4 +1,4 @@
-import type { SubscriptionsPlugin } from './definitions';
+import type { SubscriptionsPlugin } from './definitions.ts';
 declare const Subscriptions: SubscriptionsPlugin;
 export * from './definitions';
 export { Subscriptions };

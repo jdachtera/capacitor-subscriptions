@@ -6,6 +6,7 @@
 CAP_PLUGIN(SubscriptionsPlugin, "Subscriptions",
            CAP_PLUGIN_METHOD(echo, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(getProductDetails, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(getProductDetailsBatch, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(purchaseProduct, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(getCurrentEntitlements, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(getLatestTransaction, CAPPluginReturnPromise);

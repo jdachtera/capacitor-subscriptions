@@ -74,6 +74,17 @@ import UIKit
   }
 
   @available(iOS 15.0.0, *)
+  public func getProductDetailsBatch(_ productIdentifiers: [String], call: CAPPluginCall) async {
+    do {
+      let products = try await Product.products(for: productIdentifiers)
+      let formattedProducts = products.map { formatProduct($0) }
+      call.resolve(["products": formattedProducts])
+    } catch {
+      call.reject("Failed to load product details", nil, error)
+    }
+  }
+
+  @available(iOS 15.0.0, *)
   @objc public func purchaseProduct(
     _ productIdentifier: String, _ appAccountToken: String?, call: CAPPluginCall
   ) async {
@@ -230,15 +241,61 @@ import UIKit
 
   }
 
-  @available(iOS 15.0.0, *)
-  private func formatProduct(_ product: Product) -> JSObject {
-    return [
-      "productIdentifier": product.id,
-      "displayName": product.displayName,
-      "description": product.description,
-      "price": (product.price as NSNumber),
-    ]
+  @available(iOS 15.0, *)
+private func formatProduct(_ product: Product) -> JSObject {
+  var result: JSObject = [
+    "id": product.id,
+    "title": product.displayName,
+    "description": product.description,
+    "price": product.price as NSNumber,
+    "localizedPrice": product.displayPrice,
+    "isFamilyShareable": product.isFamilyShareable
+  ]
+
+  if let subscription = product.subscription {
+    result["type"] = "subscription"
+    result["subscriptionGroup"] = subscription.subscriptionGroupID
+
+    if let offer = subscription.introductoryOffer {
+      result["hasIntroOffer"] = true
+      result["introPrice"] = offer.price as NSNumber
+      result["introPriceString"] = offer.displayPrice
+
+      if #available(iOS 18.4, *) {
+        result["introPeriod"] = mapStoreKitPeriodToInterval(offer.period.unit)
+        result["introPeriodCount"] = offer.period.value
+      }
+
+      if offer.price == 0 {
+        result["hasFreeTrial"] = true
+      }
+    } else {
+      result["hasIntroOffer"] = false
+      result["hasFreeTrial"] = false
+    }
+
+    if #available(iOS 18.4, *) {
+      result["interval"] = mapStoreKitPeriodToInterval(subscription.subscriptionPeriod.unit)
+      result["intervalCount"] = subscription.subscriptionPeriod.value
+    }
+  } else {
+    result["type"] = "non-subscription"
   }
+
+  return result
+}
+
+@available(iOS 18.4, *)
+private func mapStoreKitPeriodToInterval(_ unit: Product.SubscriptionPeriod.Unit) -> String {
+  switch unit {
+    case .day: return "day"
+    case .week: return "week"
+    case .month: return "month"
+    case .year: return "year"
+    @unknown default: return "unknown"
+  }
+}
+
 
   @available(iOS 15.0.0, *)
   @objc private func updateTrialDate(_ bid: String, _ formattedDate: Data?) {

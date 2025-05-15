@@ -6,6 +6,7 @@ import android.net.Uri;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.getcapacitor.JSObject;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -78,29 +79,40 @@ public class SubscriptionsPlugin extends Plugin {
 
     @PluginMethod
     public void getProductDetails(PluginCall call) {
-
-        String productIdentifier = call.getString("productIdentifier");
-
-        if (productIdentifier == null) {
-            call.reject("Must provide a productID");
+        String productId = call.getString("productIdentifier");
+        if (productId == null) {
+            call.reject("Missing 'productIdentifier'");
+            return;
         }
 
-        implementation.getProductDetails(productIdentifier, call);
-
+        this.implementation.getProductDetails(productId, call);
     }
+
+    @PluginMethod
+    public void getProductDetailsBatch(PluginCall call) {
+        JSArray productIds = call.getArray("productIds");
+        if (productIds == null || productIds.length() == 0) {
+            call.reject("Missing 'productIds' array");
+            return;
+        }
+
+        this.implementation.getProductDetailsBatch(productIds, call);
+    }
+
 
     @PluginMethod
     public void purchaseProduct(PluginCall call) {
 
         String productIdentifier = call.getString("productIdentifier");
         String obfuscatedAccountId = call.getString("obfuscatedAccountId");
+        String offerToken = call.hasOption("offerToken") ? call.getString("offerToken") : null;
 
         if (productIdentifier == null) {
             call.reject("Must provide a productID");
         }
 
         implementation.purchaseProduct(productIdentifier, obfuscatedAccountId,
-                 call);
+                offerToken, call);
 
     }
 

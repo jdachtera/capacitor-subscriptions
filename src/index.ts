@@ -1,10 +1,9 @@
 import { registerPlugin } from '@capacitor/core';
 
-import type { SubscriptionsPlugin } from './definitions';
+import type { SubscriptionsPlugin } from './definitions.ts';
 
 const Subscriptions = registerPlugin<SubscriptionsPlugin>('Subscriptions', {
-  web: () => import('./web').then(m => new m.SubscriptionsWeb()),
-
+  web: () => import('./web').then((m) => new m.SubscriptionsWeb()),
 });
 
 export * from './definitions';
