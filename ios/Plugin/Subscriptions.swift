@@ -70,14 +70,19 @@ import UIKit
       return
     }
 
-    call.resolve(formatProduct(product))
+    call.resolve(await formatProduct(product))
   }
 
   @available(iOS 15.0.0, *)
   public func getProductDetailsBatch(_ productIdentifiers: [String], call: CAPPluginCall) async {
     do {
       let products = try await Product.products(for: productIdentifiers)
-      let formattedProducts = products.map { formatProduct($0) }
+      var formattedProducts = JSArray()
+
+      for product in products {
+        formattedProducts.append(await formatProduct(product))
+      }
+
       call.resolve(["products": formattedProducts])
     } catch {
       call.reject("Failed to load product details", nil, error)
@@ -230,19 +235,43 @@ import UIKit
 
   @available(iOS 15.0.0, *)
   private func formatTransaction(_ transaction: Transaction) -> JSObject {
-    return [
+    var result: JSObject = [
       "productIdentifier": transaction.productID,
       "originalStartDate": transaction.originalPurchaseDate,
       "originalId": String(transaction.originalID),
       "transactionId": String(transaction.id),
       "expiryDate": transaction.expirationDate ?? Date(),
+      "purchaseDate": transaction.purchaseDate,
       "appAccountToken": transaction.appAccountToken?.uuidString ?? "",
     ]
 
+    if #available(iOS 16.0, *) {
+      result["environment"] = formatEnvironment(transaction.environment)
+    }
+
+    if #available(iOS 17.2, *), let offer = transaction.offer {
+      result["isTrial"] = offer.paymentMode == .freeTrial
+    }
+
+    return result
+
+  }
+
+  @available(iOS 16.0, *)
+  private func formatEnvironment(_ environment: AppStore.Environment) -> String {
+    if environment == .production {
+      return "production"
+    } else if environment == .sandbox {
+      return "sandbox"
+    } else if environment == .xcode {
+      return "xcode"
+    } else {
+      return "sandbox"
+    }
   }
 
   @available(iOS 15.0, *)
-private func formatProduct(_ product: Product) -> JSObject {
+private func formatProduct(_ product: Product) async -> JSObject {
   var result: JSObject = [
     "id": product.id,
     "title": product.displayName,
@@ -255,6 +284,7 @@ private func formatProduct(_ product: Product) -> JSObject {
   if let subscription = product.subscription {
     result["type"] = "subscription"
     result["subscriptionGroup"] = subscription.subscriptionGroupID
+    result["isEligibleForIntroOffer"] = await subscription.isEligibleForIntroOffer
 
     if let offer = subscription.introductoryOffer {
       result["hasIntroOffer"] = true
@@ -292,7 +322,7 @@ private func mapStoreKitPeriodToInterval(_ unit: Product.SubscriptionPeriod.Unit
     case .week: return "week"
     case .month: return "month"
     case .year: return "year"
-    @unknown default: return "unknown"
+    default: return "unknown"
   }
 }
 

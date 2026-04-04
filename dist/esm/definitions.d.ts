@@ -85,6 +85,7 @@ export interface Product {
     hasFreeTrial?: boolean;
     trialPeriod?: SubscriptionInterval;
     trialPeriodCount?: number;
+    isEligibleForIntroOffer?: boolean;
     subscriptionGroup?: string;
     isFamilyShareable?: boolean;
     source: 'apple' | 'google' | 'stripe';
@@ -101,6 +102,8 @@ export interface BaseTransaction {
 }
 export interface AppleTransaction extends BaseTransaction {
     appAccountToken: string;
+    purchaseDate?: string;
+    environment?: 'sandbox' | 'production' | 'xcode';
 }
 export interface GoogleTransaction extends BaseTransaction {
     isAcknowledged: boolean;
