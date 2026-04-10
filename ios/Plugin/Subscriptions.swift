@@ -278,6 +278,7 @@ private func formatProduct(_ product: Product) async -> JSObject {
     "description": product.description,
     "price": product.price as NSNumber,
     "localizedPrice": product.displayPrice,
+    "currency": product.priceFormatStyle.currencyCode,
     "isFamilyShareable": product.isFamilyShareable
   ]
 

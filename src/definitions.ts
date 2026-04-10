@@ -67,7 +67,7 @@ export interface Product {
   description: string;
   price: number; // raw numeric price
   localizedPrice: string; // formatted, e.g. "€9.99"
-  currency?: string; // Stripe/Google only, not on iOS
+  currency?: string; // ISO 4217 currency code
   type: 'subscription' | 'non-subscription';
   interval?: SubscriptionInterval;
   intervalCount?: number; // e.g. every 3 months
