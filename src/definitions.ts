@@ -67,7 +67,7 @@ export interface Product {
   description: string;
   price: number; // raw numeric price
   localizedPrice: string; // formatted, e.g. "€9.99"
-  currency?: string; // Stripe/Google only, not on iOS
+  currency?: string; // ISO 4217 currency code
   type: 'subscription' | 'non-subscription';
   interval?: SubscriptionInterval;
   intervalCount?: number; // e.g. every 3 months
@@ -81,11 +81,13 @@ export interface Product {
   hasFreeTrial?: boolean;
   trialPeriod?: SubscriptionInterval;
   trialPeriodCount?: number;
+  isEligibleForIntroOffer?: boolean; // Apple only
 
   subscriptionGroup?: string;
   isFamilyShareable?: boolean;
   source: 'apple' | 'google' | 'stripe';
   offerToken?: string; // Google Play offer token
+  basePlanId?: string; // Google Play base plan ID
 }
 
 // Supported billing intervals (mirrors StoreKit and Google BillingClient)
@@ -104,6 +106,8 @@ export interface BaseTransaction {
 // Apple-specific transaction extension
 export interface AppleTransaction extends BaseTransaction {
   appAccountToken: string;
+  purchaseDate?: string;
+  environment?: 'sandbox' | 'production' | 'xcode';
 }
 
 // Google-specific transaction extension

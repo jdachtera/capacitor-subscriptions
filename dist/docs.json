@@ -374,6 +374,13 @@
           "type": "number | undefined"
         },
         {
+          "name": "isEligibleForIntroOffer",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
           "name": "subscriptionGroup",
           "tags": [],
           "docs": "",

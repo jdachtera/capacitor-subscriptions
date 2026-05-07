@@ -34,14 +34,22 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class Subscriptions {
+
+    private static final String TAG = "Subscriptions";
+    private static final long CONNECTION_TIMEOUT_MS = 10_000;
+    private static final int MAX_RECONNECT_ATTEMPTS = 3;
 
     private Activity activity = null;
     private BillingClientEventEmitter billingClientEventEmitter = null;
 
     private BillingClient billingClient = null;
-    private int billingClientIsConnected = 0;
+    private volatile int billingClientIsConnected = 0;
+    private CountDownLatch connectionLatch = new CountDownLatch(1);
+    private int reconnectAttempts = 0;
 
     private String googleVerifyEndpoint = "";
     private String googleBid = "";
@@ -53,23 +61,52 @@ public class Subscriptions {
         this.billingClientEventEmitter = billingClientEventEmitter;
         this.billingClient = billingClientEventEmitter.getBillingClient();
         this.activity = activity;
+        startBillingConnection();
+    }
+
+    private void startBillingConnection() {
+        connectionLatch = new CountDownLatch(1);
+        billingClientIsConnected = 0;
+
         this.billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult billingResult) {
                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     billingClientIsConnected = 1;
+                    reconnectAttempts = 0;
+                    Log.i(TAG, "BillingClient connected successfully");
                 } else {
                     billingClientIsConnected = billingResult.getResponseCode();
+                    Log.w(TAG, "BillingClient setup failed with code: " +
+                            billingResult.getResponseCode());
                 }
+                connectionLatch.countDown();
             }
 
             @Override
             public void onBillingServiceDisconnected() {
-                // Try to restart the connection on the next request to
-                // Google Play by calling the startConnection() method.
+                billingClientIsConnected = 0;
+                Log.w(TAG, "BillingClient disconnected");
+                if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                    reconnectAttempts++;
+                    Log.i(TAG, "Reconnecting (attempt " +
+                            reconnectAttempts + "/" +
+                            MAX_RECONNECT_ATTEMPTS + ")");
+                    startBillingConnection();
+                }
             }
         });
+    }
 
+    private boolean waitForConnection() {
+        if (billingClientIsConnected == 1) return true;
+        try {
+            connectionLatch.await(CONNECTION_TIMEOUT_MS,
+                    TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return billingClientIsConnected == 1;
     }
 
     public String echo(String value) {
@@ -121,13 +158,14 @@ public class Subscriptions {
 
     public void getProductDetailsBatch(JSArray productIdsArray,
                                        PluginCall call) {
-        if (billingClientIsConnected != 1) {
-            String reason = (billingClientIsConnected == 2) ? "BillingClient " +
-                    "failed to initialize" : "BillingClient is still " +
-                    "initializing";
-            String code = (billingClientIsConnected == 2) ?
-                    "BILLING_CLIENT_INIT_FAILED" :
-                    "BILLING_CLIENT_INIT_PENDING";
+        if (!waitForConnection()) {
+            String reason = (billingClientIsConnected == 0)
+                    ? "BillingClient connection timed out"
+                    : "BillingClient failed to initialize (code: " +
+                      billingClientIsConnected + ")";
+            String code = (billingClientIsConnected == 0)
+                    ? "BILLING_CLIENT_INIT_PENDING"
+                    : "BILLING_CLIENT_INIT_FAILED";
             call.reject(reason, code);
             return;
         }
@@ -328,7 +366,7 @@ public class Subscriptions {
 
         JSObject response = new JSObject();
 
-        if (billingClientIsConnected == 1) {
+        if (waitForConnection()) {
 
             QueryPurchasesParams queryPurchaseHistoryParams =
                     QueryPurchasesParams
@@ -379,7 +417,7 @@ public class Subscriptions {
     }
 
     public void getCurrentEntitlements(PluginCall call) {
-        if (billingClientIsConnected != 1) {
+        if (!waitForConnection()) {
             call.reject("Billing client is not connected",
                     "BILLING_CLIENT_NOT_CONNECTED");
             return;
@@ -419,10 +457,10 @@ public class Subscriptions {
     public void purchaseProduct(String productIdentifier,
                                 String obfuscatedAccountId, String offerToken
             , PluginCall call) {
-        Log.i("SAZTUNES",
+        Log.i(TAG,
                 "purchaseProduct " + billingClientIsConnected + " " + productIdentifier);
 
-        if (billingClientIsConnected != 1) {
+        if (!waitForConnection()) {
             call.reject("Billing client is not connected",
                     "BILLING_CLIENT_NOT_CONNECTED");
             return;
