@@ -87,7 +87,6 @@ export interface Product {
   isFamilyShareable?: boolean;
   source: 'apple' | 'google' | 'stripe';
   offerToken?: string; // Google Play offer token
-  basePlanId?: string; // Google Play base plan ID
 }
 
 // Supported billing intervals (mirrors StoreKit and Google BillingClient)

@@ -90,7 +90,6 @@ export interface Product {
     isFamilyShareable?: boolean;
     source: 'apple' | 'google' | 'stripe';
     offerToken?: string;
-    basePlanId?: string;
 }
 export type SubscriptionInterval = 'day' | 'week' | 'month' | 'year';
 export interface BaseTransaction {

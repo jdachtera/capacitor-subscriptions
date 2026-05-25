@@ -423,6 +423,20 @@
           "docs": "",
           "complexTypes": [],
           "type": "string"
+        },
+        {
+          "name": "purchaseDate",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "environment",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "'sandbox' | 'production' | 'xcode' | undefined"
         }
       ]
     },

@@ -1,4 +1,5 @@
-import { PluginListenerHandle, WebPlugin } from '@capacitor/core';
+import type { PluginListenerHandle } from '@capacitor/core';
+import { WebPlugin } from '@capacitor/core';
 import type { AppleTransaction, GoogleTransaction, Product, SubscriptionsPlugin, Transaction } from './definitions';
 export declare class SubscriptionsWeb extends WebPlugin implements SubscriptionsPlugin {
     setGoogleVerificationDetails(options: {
