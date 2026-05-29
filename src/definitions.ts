@@ -63,6 +63,7 @@ export interface SubscriptionsPlugin {
 export interface Product {
   id: string;
   baseProductId?: string; // Google Play only
+  basePlanId?: string; // Google Play only — emitted per offer by the native layer
   title: string;
   description: string;
   price: number; // raw numeric price

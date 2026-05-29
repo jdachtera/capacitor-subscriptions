@@ -69,6 +69,7 @@ export interface SubscriptionsPlugin {
 export interface Product {
     id: string;
     baseProductId?: string;
+    basePlanId?: string;
     title: string;
     description: string;
     price: number;

@@ -7,7 +7,7 @@
     "methods": [
       {
         "name": "echo",
-        "signature": "(options: { value: string; }) => Promise<{ value: string; }>",
+        "signature": "(options: { value: string; }) => any",
         "parameters": [
           {
             "name": "options",
@@ -15,7 +15,7 @@
             "type": "{ value: string; }"
           }
         ],
-        "returns": "Promise<{ value: string; }>",
+        "returns": "any",
         "tags": [],
         "docs": "",
         "complexTypes": [],
@@ -23,7 +23,7 @@
       },
       {
         "name": "getProductDetails",
-        "signature": "(options: { productIdentifier: string; }) => Promise<Product>",
+        "signature": "(options: { productIdentifier: string; }) => any",
         "parameters": [
           {
             "name": "options",
@@ -31,7 +31,7 @@
             "type": "{ productIdentifier: string; }"
           }
         ],
-        "returns": "Promise<Product>",
+        "returns": "any",
         "tags": [],
         "docs": "Fetch metadata for a single subscription product by its identifier.",
         "complexTypes": [
@@ -41,15 +41,15 @@
       },
       {
         "name": "getProductDetailsBatch",
-        "signature": "(options: { productIds: string[]; }) => Promise<{ products: Product[]; }>",
+        "signature": "(options: { productIds: string[]; }) => any",
         "parameters": [
           {
             "name": "options",
             "docs": "",
-            "type": "{ productIds: string[]; }"
+            "type": "{ productIds: {}; }"
           }
         ],
-        "returns": "Promise<{ products: Product[]; }>",
+        "returns": "any",
         "tags": [],
         "docs": "Fetch metadata for multiple subscription products in one batch request.",
         "complexTypes": [
@@ -59,7 +59,7 @@
       },
       {
         "name": "purchaseProduct",
-        "signature": "(options: { productIdentifier: string; appAccountToken?: string; }) => Promise<AppleTransaction>",
+        "signature": "(options: { productIdentifier: string; appAccountToken?: string; }) => any",
         "parameters": [
           {
             "name": "options",
@@ -67,7 +67,7 @@
             "type": "{ productIdentifier: string; appAccountToken?: string | undefined; }"
           }
         ],
-        "returns": "Promise<AppleTransaction>",
+        "returns": "any",
         "tags": [],
         "docs": "Initiate a purchase flow for a subscription product.",
         "complexTypes": [
@@ -77,7 +77,7 @@
       },
       {
         "name": "purchaseProduct",
-        "signature": "(options: { productIdentifier: string; obfuscatedAccountId?: string; offerToken?: string; }) => Promise<GoogleTransaction>",
+        "signature": "(options: { productIdentifier: string; obfuscatedAccountId?: string; offerToken?: string; }) => any",
         "parameters": [
           {
             "name": "options",
@@ -85,7 +85,7 @@
             "type": "{ productIdentifier: string; obfuscatedAccountId?: string | undefined; offerToken?: string | undefined; }"
           }
         ],
-        "returns": "Promise<GoogleTransaction>",
+        "returns": "any",
         "tags": [],
         "docs": "",
         "complexTypes": [
@@ -95,7 +95,7 @@
       },
       {
         "name": "purchaseProduct",
-        "signature": "(options: { productIdentifier: string; }) => Promise<Transaction>",
+        "signature": "(options: { productIdentifier: string; }) => any",
         "parameters": [
           {
             "name": "options",
@@ -103,7 +103,7 @@
             "type": "{ productIdentifier: string; }"
           }
         ],
-        "returns": "Promise<Transaction>",
+        "returns": "any",
         "tags": [],
         "docs": "",
         "complexTypes": [
@@ -113,9 +113,9 @@
       },
       {
         "name": "getCurrentEntitlements",
-        "signature": "() => Promise<{ entitlements: Transaction[]; }>",
+        "signature": "() => any",
         "parameters": [],
-        "returns": "Promise<{ entitlements: Transaction[]; }>",
+        "returns": "any",
         "tags": [],
         "docs": "Query all active entitlements (non-expired subscriptions).",
         "complexTypes": [
@@ -125,7 +125,7 @@
       },
       {
         "name": "getLatestTransaction",
-        "signature": "(options: { productIdentifier: string; }) => Promise<Transaction>",
+        "signature": "(options: { productIdentifier: string; }) => any",
         "parameters": [
           {
             "name": "options",
@@ -133,7 +133,7 @@
             "type": "{ productIdentifier: string; }"
           }
         ],
-        "returns": "Promise<Transaction>",
+        "returns": "any",
         "tags": [],
         "docs": "Returns the most recent transaction for a given product identifier.",
         "complexTypes": [
@@ -153,7 +153,7 @@
       },
       {
         "name": "acknowledgePurchase",
-        "signature": "(options: { purchaseToken: string; }) => Promise<void>",
+        "signature": "(options: { purchaseToken: string; }) => any",
         "parameters": [
           {
             "name": "options",
@@ -161,7 +161,7 @@
             "type": "{ purchaseToken: string; }"
           }
         ],
-        "returns": "Promise<void>",
+        "returns": "any",
         "tags": [],
         "docs": "Acknowledge a Google Play purchase after processing.",
         "complexTypes": [],
@@ -198,12 +198,12 @@
             "type": "(response: GoogleTransaction) => void"
           }
         ],
-        "returns": "Promise<PluginListenerHandle> & PluginListenerHandle",
+        "returns": "any",
         "tags": [],
         "docs": "",
         "complexTypes": [
-          "PluginListenerHandle",
-          "GoogleTransaction"
+          "GoogleTransaction",
+          "PluginListenerHandle"
         ],
         "slug": "addlistenerandroid-purchase-success-"
       },
@@ -222,7 +222,7 @@
             "type": "() => void"
           }
         ],
-        "returns": "Promise<PluginListenerHandle> & PluginListenerHandle",
+        "returns": "any",
         "tags": [],
         "docs": "",
         "complexTypes": [
@@ -250,6 +250,13 @@
         },
         {
           "name": "baseProductId",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "basePlanId",
           "tags": [],
           "docs": "",
           "complexTypes": [],
@@ -482,7 +489,7 @@
           "tags": [],
           "docs": "",
           "complexTypes": [],
-          "type": "() => Promise<void>"
+          "type": "() => any"
         }
       ]
     }
